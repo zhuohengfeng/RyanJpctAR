@@ -8,7 +8,6 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Process;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -21,7 +20,6 @@ import com.ryan.ryanjpctar.vuforia.SampleApplicationControl;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationException;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
-import com.ryan.ryanjpctar.vuforia.utils.Logger;
 import com.ryan.ryanjpctar.vuforia.utils.SampleApplicationGLView;
 import com.vuforia.CameraDevice;
 import com.vuforia.DataSet;
@@ -32,8 +30,6 @@ import com.vuforia.Trackable;
 import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
-
-import org.rajawali3d.view.SurfaceView;
 
 import java.util.ArrayList;
 
@@ -85,6 +81,9 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         startLoadingAnimation();
         //添加你下载的图片数据库的xml文件
         mDatasetStrings.add("dataset.xml");
+//        mDatasetStrings.add("StonesAndChips.xml"); // 和模型有关系？？？
+//        mDatasetStrings.add("Tarmac.xml");
+
         vuforiaAppSession.initAR(this, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mGestureDetector = new GestureDetector(this, new GestureListener());
         mIsDroidDevice = android.os.Build.MODEL.toLowerCase().startsWith("droid");
@@ -196,7 +195,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         mGlView = new SampleApplicationGLView(this);
         mGlView.init(translucent, depthSize, stencilSize);
         mRenderer = new ImageTargetRendererObj(this, vuforiaAppSession);
-        mGlView.setRenderer(mRenderer);
+        mGlView.setSurfaceRenderer(mRenderer);
 
     }
 

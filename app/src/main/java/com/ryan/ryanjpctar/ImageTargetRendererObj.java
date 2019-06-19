@@ -11,6 +11,7 @@ package com.ryan.ryanjpctar;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
+import android.view.MotionEvent;
 
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
@@ -41,7 +42,7 @@ import javax.microedition.khronos.opengles.GL10;
  *
  * @author Admin
  */
-public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
+public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private SampleApplicationSession vuforiaAppSession;
     private ImageTargetsActivity mActivity;
     private Renderer mRenderer;
@@ -75,6 +76,8 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
     private String[] objName = {"01", "02"};
 
     ImageTargetRendererObj(ImageTargetsActivity activity, SampleApplicationSession session) {
+        super(activity);
+
         mActivity = activity;
         vuforiaAppSession = session;
 
@@ -149,28 +152,7 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
     }
     */
 
-    /**
-     * 显示模型
-     *
-     * @param gl gl
-     */
-    @Override
-    public void onDrawFrame(GL10 gl) {
-        if (!mIsActive) {
-            return;
-        }
-        //渲染
-        renderFrame();
-        //更新相机
-        updateCamera();
-        //模型旋转缩放操作
-//        if (current != null) {
-//            switchModel(current);
-//        }
-//        world.renderScene(fb);
-//        world.draw(fb);
-//        fb.display();
-    }
+
 
 //    private RGBColor back = new RGBColor(50, 50, 100);
 
@@ -225,32 +207,6 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
     }
     */
 
-    // Called when the surface is created or recreated.
-    @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        initRendering(); // NOTE: Cocokin sama cpp - DONE
-
-        // Call Vuforia function to (re)initialize rendering after first use
-        // or after OpenGL ES context was lost (e.g. after onPause/onResume):
-        vuforiaAppSession.onSurfaceCreated();
-
-        // Hide the Loading Dialog
-        mActivity.loadingDialogHandler.sendEmptyMessageDelayed(LoadingDialogHandler.HIDE_LOADING_DIALOG, 5000);
-    }
-
-    // Called when the surface changed size.
-    @Override
-    public void onSurfaceChanged(GL10 gl, int width, int height) {
-//        if (fb != null) {
-//            fb.dispose();
-//        }
-//        fb = new FrameBuffer(width, height);
-//        Config.viewportOffsetAffectsRenderTarget = true;
-
-        updateRendering(width, height);
-        // Call Vuforia function to handle render surface size changes:
-        vuforiaAppSession.onSurfaceChanged(width, height);
-    }
 
 
     // Function for initializing the renderer.    
@@ -387,5 +343,71 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
             cam.setYFOV(fovy);
             */
         }
+    }
+
+
+    //---------------------------------------------
+    @Override
+    protected void initScene() {
+
+    }
+
+    // Called when the surface is created or recreated.
+    @Override
+    public void onRenderSurfaceCreated(EGLConfig config, GL10 gl, int width, int height) {
+        super.onRenderSurfaceCreated(config, gl, width, height);
+        initRendering(); // NOTE: Cocokin sama cpp - DONE
+
+        // Call Vuforia function to (re)initialize rendering after first use
+        // or after OpenGL ES context was lost (e.g. after onPause/onResume):
+        vuforiaAppSession.onSurfaceCreated();
+
+        // Hide the Loading Dialog
+        mActivity.loadingDialogHandler.sendEmptyMessageDelayed(LoadingDialogHandler.HIDE_LOADING_DIALOG, 5000);
+    }
+
+    @Override
+    public void onRenderSurfaceSizeChanged(GL10 gl, int width, int height) {
+        super.onRenderSurfaceSizeChanged(gl, width, height);
+//        if (fb != null) {
+//            fb.dispose();
+//        }
+//        fb = new FrameBuffer(width, height);
+//        Config.viewportOffsetAffectsRenderTarget = true;
+
+        updateRendering(width, height);
+        // Call Vuforia function to handle render surface size changes:
+        vuforiaAppSession.onSurfaceChanged(width, height);
+    }
+
+    @Override
+    public void onRenderFrame(GL10 gl) {
+        super.onRenderFrame(gl);
+        if (!mIsActive) {
+            return;
+        }
+        //渲染
+        renderFrame();
+        //更新相机
+        updateCamera();
+        //模型旋转缩放操作
+//        if (current != null) {
+//            switchModel(current);
+//        }
+//        world.renderScene(fb);
+//        world.draw(fb);
+//        fb.display();
+    }
+
+
+
+    @Override
+    public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset) {
+
+    }
+
+    @Override
+    public void onTouchEvent(MotionEvent event) {
+
     }
 }

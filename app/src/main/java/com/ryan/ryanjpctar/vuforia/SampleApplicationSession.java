@@ -37,6 +37,9 @@ import com.vuforia.Vuforia.UpdateCallbackInterface;
  */
 public class SampleApplicationSession implements UpdateCallbackInterface {
     private final String TAG = "Vuforia_Sample_Applications";
+
+    private static final String Vuforia_KEY = "AQyX4Hn/////AAABmff2LeVHjUcut6kggOKkv/sm6hT+kRv5t/9DXT8aqS7V5cLUeCdONBjzc9Ez0RGwlaO4o4JiXz38z293zeVYlk8tAT4R8VAgHdJOmF7CrI0Mi4A2SitTkM/JC86FQAJDtzMmQ/NItYBBILBHcosKIe9I/hz1rjqSs7e/0jFyZL/sMkkv+GwPdBUzV9kbb9+s4z39iJ8USth4XFrlSXn9hwDb+BSsZXp8xf0xdt/zfyiP2YbR5F5r9DANegGh2c/tCPlPxx6I/6MFJQFIXGBqBkwOULewY7iFF7hiZDHg5apuXeNjLg7d73tuYJc15dJjX4NFOzkID6KTYPJBQHzFmZd7pl5Najj/tZ7d/qNrYvZh";
+
     // Reference to the current activity
     private Activity mActivity;
     private SampleApplicationControl mSessionControl;
@@ -319,7 +322,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface {
             // Prevent the onDestroy() method to overlap with initialization:
             synchronized (mShutdownLock) {
                 Vuforia.setInitParameters(mActivity, mVuforiaFlags,
-                        "AR9JM9v/////AAABmeEPdgsgckVtghmQhhkz0GsUbXBQftwm8Ru+0AIZHzluFgHOW8F8N1IN1L6eQF4lFXiJxSAsdextH9dud2HWsRrKYF0gZA7bX2V3t+AMcvVSRPVpQAJDFEJ/oTrPZfPATWHnAcULlanVsepv6IgYb9bqlxKjTtdD0c9R1RRFF7yVQT5KeJP8EZqXs+nWumsDoEmpNVlhPTRZBO42ElFm4f3wUAtOaUgdrkniwNYbGhEDXv8D7WRBpXzKKioSxUj4lgerVLABDGwGp0NeFod3QrWGPInf/9S786pjnvLIuG+0NWhixwUJbpb/+sgwfJq6HGNijpoSXXLm5hyE1KBXa3mO/NHFCAleSSZAUTtG7iAp");
+                        Vuforia_KEY);
 
                 do {
                     // Vuforia.init() blocks until an initialization step is
@@ -539,7 +542,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface {
 
         float diff = (widestVideo - widestScreen) / 2;
 
-//        Config.viewportOffsetY = diff / widestScreen; // TODO
+        //Config.viewportOffsetY = diff / widestScreen; // TODO
     }
 
     // Configures the video mode and sets offsets for the camera's image
