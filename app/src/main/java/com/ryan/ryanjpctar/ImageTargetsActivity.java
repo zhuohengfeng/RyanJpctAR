@@ -22,6 +22,7 @@ import com.ryan.ryanjpctar.vuforia.SampleApplicationException;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
 import com.ryan.ryanjpctar.vuforia.utils.Logger;
+import com.ryan.ryanjpctar.vuforia.utils.SampleApplicationGLView;
 import com.vuforia.CameraDevice;
 import com.vuforia.DataSet;
 import com.vuforia.ObjectTracker;
@@ -50,7 +51,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     /**
      * GLSurfaceView，openGl的视图，显示3D模型
      */
-    private SurfaceView mGlView;
+    private SampleApplicationGLView mGlView;
 
     /**
      * 渲染类，识别图片并显示3D模型的类
@@ -192,8 +193,8 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         int stencilSize = 0;
         boolean translucent = Vuforia.requiresAlpha();
 
-        mGlView = new SurfaceView(this);
-        //mGlView.init(translucent, depthSize, stencilSize);
+        mGlView = new SampleApplicationGLView(this);
+        mGlView.init(translucent, depthSize, stencilSize);
         mRenderer = new ImageTargetRendererObj(this, vuforiaAppSession);
         mGlView.setRenderer(mRenderer);
 

@@ -539,7 +539,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface {
 
         float diff = (widestVideo - widestScreen) / 2;
 
-        Config.viewportOffsetY = diff / widestScreen;
+//        Config.viewportOffsetY = diff / widestScreen; // TODO
     }
 
     // Configures the video mode and sets offsets for the camera's image

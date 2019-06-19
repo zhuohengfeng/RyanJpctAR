@@ -14,20 +14,8 @@ import android.util.Log;
 
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
-import com.ryan.ryanjpctar.vuforia.utils.ObjItem;
+
 import com.ryan.ryanjpctar.vuforia.utils.SampleMath;
-import com.threed.jpct.Camera;
-import com.threed.jpct.Config;
-import com.threed.jpct.FrameBuffer;
-import com.threed.jpct.Light;
-import com.threed.jpct.Loader;
-import com.threed.jpct.Object3D;
-import com.threed.jpct.RGBColor;
-import com.threed.jpct.SimpleVector;
-import com.threed.jpct.Texture;
-import com.threed.jpct.TextureManager;
-import com.threed.jpct.World;
-import com.threed.jpct.util.MemoryHelper;
 import com.vuforia.CameraCalibration;
 import com.vuforia.Matrix44F;
 import com.vuforia.Renderer;
@@ -38,9 +26,12 @@ import com.vuforia.TrackableResult;
 import com.vuforia.Vec2F;
 import com.vuforia.Vuforia;
 
+import org.rajawali3d.Object3D;
+import org.rajawali3d.materials.textures.Texture;
+import org.rajawali3d.materials.textures.TextureManager;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -58,26 +49,26 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
     /**
      * jpct中的世界
      */
-    private World world;
-    private Camera cam;
-    private FrameBuffer fb;
+//    private World world;
+//    private Camera cam;
+//    private FrameBuffer fb;
     private float[] modelViewMat;
     private float fov;
     private float fovy;
     /**
      * jpct中的灯光
      */
-    private Light sun;
+//    private Light sun;
     /**
      * jpct中的一个3d模型文件
      * 该属性表示当前的模型
      */
-    private Object3D current;
+//    private Object3D current;
 
     /**
      * 模型集合
      */
-    private List<ObjItem> objList = new ArrayList<>();
+//    private List<ObjItem> objList = new ArrayList<>();
     /**
      * Assets文件中模型和图片纹理的名字
      */
@@ -86,21 +77,23 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
     ImageTargetRendererObj(ImageTargetsActivity activity, SampleApplicationSession session) {
         mActivity = activity;
         vuforiaAppSession = session;
-        //实例化虚拟世界
-        world = new World();
-        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
-        world.setAmbientLight(255, 255, 255);
-        world.setClippingPlanes(1.0f, 3000.0f);
-        sun = new Light(world);
-        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
-        sun.setIntensity(255, 255, 255);
-        //初始化模型集合
-        initObjList();
-        //垃圾回收，针对旧手机
-        MemoryHelper.compact();
+
+//        //实例化虚拟世界
+//        world = new World();
+//        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
+//        world.setAmbientLight(255, 255, 255);
+//        world.setClippingPlanes(1.0f, 3000.0f);
+//        sun = new Light(world);
+//        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
+//        sun.setIntensity(255, 255, 255);
+//        //初始化模型集合
+//        initObjList();
+//        //垃圾回收，针对旧手机
+//        MemoryHelper.compact();
     }
 
 
+    /*
     private void initObjList() {
         //将所有模型文件放到List中
         for (String anObjName : objName) {
@@ -154,6 +147,7 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
             Log.e("TAG", "init: failed" + e);
         }
     }
+    */
 
     /**
      * 显示模型
@@ -170,23 +164,21 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
         //更新相机
         updateCamera();
         //模型旋转缩放操作
-        if (current != null) {
-            switchModel(current);
-        }
-        world.renderScene(fb);
-        world.draw(fb);
-        fb.display();
+//        if (current != null) {
+//            switchModel(current);
+//        }
+//        world.renderScene(fb);
+//        world.draw(fb);
+//        fb.display();
     }
 
-    private RGBColor back = new RGBColor(50, 50, 100);
+//    private RGBColor back = new RGBColor(50, 50, 100);
 
     /**
      * 旋转缩放模型的方法
      * 通过ImageTargets中监听屏幕事件的方法来达到旋转模型的效果
-     *
-     * @param item 当前模型
-     * @see ImageTargetsActivity
      */
+    /*
     private void switchModel(final Object3D item) {
         //通过ImageTargets的手势回调
         mActivity.setOnModelChangeListener(new ImageTargetsActivity.OnModelChangeListener() {
@@ -231,7 +223,7 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
             }
         });
     }
-
+    */
 
     // Called when the surface is created or recreated.
     @Override
@@ -249,11 +241,12 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
     // Called when the surface changed size.
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        if (fb != null) {
-            fb.dispose();
-        }
-        fb = new FrameBuffer(width, height);
-        Config.viewportOffsetAffectsRenderTarget = true;
+//        if (fb != null) {
+//            fb.dispose();
+//        }
+//        fb = new FrameBuffer(width, height);
+//        Config.viewportOffsetAffectsRenderTarget = true;
+
         updateRendering(width, height);
         // Call Vuforia function to handle render surface size changes:
         vuforiaAppSession.onSurfaceChanged(width, height);
@@ -326,27 +319,28 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
 
             try {
                 //先移除所有模型，以免模型重复叠加
-                world.removeAllObjects();
+//                world.removeAllObjects();
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
             //重新获取当前扫描图片的模型
-            for (int i = 0; i < objList.size(); i++) {
-                ObjItem m = objList.get(i);
-                //如果设置的索引名与当前的图片名一致
-                if (m.getIndex().equals(trackable.getName())) {
-                    //将当前模型重新显示在世界里面
-                    world.addObject(m.getTarget());
-                    SimpleVector sv = new SimpleVector();
-                    sv.set(m.getTarget().getTransformedCenter());
-                    sv.y -= 100;
-                    sv.z -= 100;
-                    sun.setPosition(sv);
-                    current = objList.get(i).getTarget();
-                    break;
-                }
-            }
+//            for (int i = 0; i < objList.size(); i++) {
+//                ObjItem m = objList.get(i);
+//                //如果设置的索引名与当前的图片名一致
+//                if (m.getIndex().equals(trackable.getName())) {
+//                    //将当前模型重新显示在世界里面
+//                    world.addObject(m.getTarget());
+//                    SimpleVector sv = new SimpleVector();
+//                    sv.set(m.getTarget().getTransformedCenter());
+//                    sv.y -= 100;
+//                    sv.z -= 100;
+//                    sun.setPosition(sv);
+//                    current = objList.get(i).getTarget();
+//                    break;
+//                }
+//            }
+
             modelviewArray = invTranspMV.getData();
             updateModelViewMatrix(modelviewArray);
         }
@@ -372,6 +366,7 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
         if (modelViewMat != null) {
             float[] m = modelViewMat;
 
+            /*
             final SimpleVector camUp;
             if (vuforiaAppSession.mIsPortrait) {
                 camUp = new SimpleVector(-m[0], -m[1], -m[2]);
@@ -390,6 +385,7 @@ public class ImageTargetRendererObj implements GLSurfaceView.Renderer {
 
             cam.setFOV(fov);
             cam.setYFOV(fovy);
+            */
         }
     }
 }
