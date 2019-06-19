@@ -19,7 +19,6 @@ import android.view.OrientationEventListener;
 import android.view.WindowManager;
 
 import com.ryan.ryanjpctar.R;
-import com.threed.jpct.Config;
 import com.vuforia.CameraCalibration;
 import com.vuforia.CameraDevice;
 import com.vuforia.Matrix44F;

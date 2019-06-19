@@ -21,8 +21,7 @@ import com.ryan.ryanjpctar.vuforia.SampleApplicationControl;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationException;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
-import com.ryan.ryanjpctar.vuforia.utils.SampleApplicationGLView;
-import com.threed.jpct.Logger;
+import com.ryan.ryanjpctar.vuforia.utils.Logger;
 import com.vuforia.CameraDevice;
 import com.vuforia.DataSet;
 import com.vuforia.ObjectTracker;
@@ -32,6 +31,8 @@ import com.vuforia.Trackable;
 import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
+
+import org.rajawali3d.view.SurfaceView;
 
 import java.util.ArrayList;
 
@@ -49,7 +50,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     /**
      * GLSurfaceView，openGl的视图，显示3D模型
      */
-    private SampleApplicationGLView mGlView;
+    private SurfaceView mGlView;
 
     /**
      * 渲染类，识别图片并显示3D模型的类
@@ -191,8 +192,8 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         int stencilSize = 0;
         boolean translucent = Vuforia.requiresAlpha();
 
-        mGlView = new SampleApplicationGLView(this);
-        mGlView.init(translucent, depthSize, stencilSize);
+        mGlView = new SurfaceView(this);
+        //mGlView.init(translucent, depthSize, stencilSize);
         mRenderer = new ImageTargetRendererObj(this, vuforiaAppSession);
         mGlView.setRenderer(mRenderer);
 
@@ -458,12 +459,12 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
                 // + (me.getX() - xpos));
                 xpos = event.getX();
                 ypos = event.getY();
-                Logger.log("xpos------------>>" + xpos);
+//                Logger.d("xpos------------>>" + xpos);
                 // Logger.log("ypos------------>>" + ypos);
                 // 以x轴为例，鼠标从左向右拉为正，从右向左拉为负
                 touchTurn = xd / 100f;
                 touchTurnUp = yd / 100f;
-                Logger.log("touchTurn------------>>" + touchTurn);
+//                Logger.d("touchTurn------------>>" + touchTurn);
                 // Logger.log("touchTurnUp------------>>" + touchTurnUp);
                 if (listener != null) {
                     listener.modelRotate(touchTurn, touchTurnUp);
