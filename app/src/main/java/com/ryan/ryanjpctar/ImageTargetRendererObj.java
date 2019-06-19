@@ -8,6 +8,7 @@ countries.
 ===============================================================================*/
 package com.ryan.ryanjpctar;
 
+import android.content.pm.ActivityInfo;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
@@ -16,8 +17,10 @@ import android.view.MotionEvent;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
 
+import com.ryan.ryanjpctar.vuforia.utils.Logger;
 import com.ryan.ryanjpctar.vuforia.utils.SampleMath;
 import com.vuforia.CameraCalibration;
+import com.vuforia.CameraDevice;
 import com.vuforia.Matrix44F;
 import com.vuforia.Renderer;
 import com.vuforia.State;
@@ -28,8 +31,20 @@ import com.vuforia.Vec2F;
 import com.vuforia.Vuforia;
 
 import org.rajawali3d.Object3D;
+import org.rajawali3d.animation.mesh.SkeletalAnimationObject3D;
+import org.rajawali3d.animation.mesh.SkeletalAnimationSequence;
+import org.rajawali3d.lights.DirectionalLight;
+import org.rajawali3d.loader.md5.LoaderMD5Anim;
+import org.rajawali3d.loader.md5.LoaderMD5Mesh;
+import org.rajawali3d.materials.Material;
+import org.rajawali3d.materials.methods.DiffuseMethod;
+import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.materials.textures.TextureManager;
+import org.rajawali3d.math.Quaternion;
+import org.rajawali3d.math.vector.Vector3;
+import org.rajawali3d.primitives.Plane;
+import org.rajawali3d.primitives.Sphere;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +71,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private float[] modelViewMat;
     private float fov;
     private float fovy;
+    private double[] mModelViewMatrix;
     /**
      * jpct中的灯光
      */
@@ -81,18 +97,9 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         mActivity = activity;
         vuforiaAppSession = session;
 
-//        //实例化虚拟世界
-//        world = new World();
-//        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
-//        world.setAmbientLight(255, 255, 255);
-//        world.setClippingPlanes(1.0f, 3000.0f);
-//        sun = new Light(world);
-//        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
-//        sun.setIntensity(255, 255, 255);
-//        //初始化模型集合
-//        initObjList();
-//        //垃圾回收，针对旧手机
-//        MemoryHelper.compact();
+        mPosition = new Vector3();
+        mOrientation = new Quaternion();
+        mModelViewMatrix = new double[16];
     }
 
 
@@ -213,7 +220,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private void initRendering() {
         mRenderer = Renderer.getInstance();
         // Define clear color
-        GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
+        //GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
     }
 
     private void updateRendering(int width, int height) {
@@ -238,6 +245,12 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             fovy = fovyRadians;
         }
 
+        float fovDegrees = (float) (fovRadians * 180.0f / Math.PI);
+        getCurrentCamera().setProjectionMatrix(fovDegrees, vuforiaAppSession.mVideoWidth,
+                vuforiaAppSession.mVideoHeight);
+
+        //getCurrentCamera().setFieldOfView(fov);
+        //getCurrentCamera().setProjectionMatrix(fov, width, height);
     }
 
 
@@ -249,14 +262,44 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         Log.d("zhf-m:", name+": "+build.toString());
     }
 
+
+    private void transformPositionAndOrientation(float[] modelViewMatrix) {
+        mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
+                -modelViewMatrix[14]);
+        copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);
+
+        mOrientation.fromMatrix(mModelViewMatrix);
+
+        if(!vuforiaAppSession.mIsPortrait)
+        {
+            mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
+                    -modelViewMatrix[14]);
+            mOrientation.y = -mOrientation.y;
+            mOrientation.z = -mOrientation.z;
+        }
+        else
+        {
+            mPosition.setAll(-modelViewMatrix[13], -modelViewMatrix[12],
+                    -modelViewMatrix[14]);
+            double orX = mOrientation.x;
+            mOrientation.x = -mOrientation.y;
+            mOrientation.y = -orX;
+            mOrientation.z = -mOrientation.z;
+        }
+
+        Logger.d("transformPositionAndOrientation x="+mPosition.x+", y="+mPosition.y+", z="+mPosition.z);
+    }
+
+
+
     // The render function.
     private void renderFrame() {
         // clear color and depth buffer
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+//        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         // get the state, and mark the beginning of a rendering section
         State state = mRenderer.begin();
         // explicitly render the video background
-        mRenderer.drawVideoBackground();
+//        mRenderer.drawVideoBackground();
 
         float[] modelviewArray;
         // did we find any trackables this frame?
@@ -272,6 +315,8 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             printMatrix("inverseMV", inverseMV.getData());
             Matrix44F invTranspMV = SampleMath.Matrix44FTranspose(inverseMV);
             printMatrix("invTranspMV", invTranspMV.getData());
+
+            transformPositionAndOrientation(invTranspMV.getData());
 
             try {
                 //先移除所有模型，以免模型重复叠加
@@ -307,9 +352,9 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, 0,
-                    0, 0, -10000, 1
+                    0, 0, -10000, 1 // z = -10000
             };
-            updateModelViewMatrix(modelviewArray);
+            //updateModelViewMatrix(modelviewArray);
         }
         mRenderer.end();
     }
@@ -318,11 +363,46 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         modelViewMat = mat;
     }
 
+    private void copyFloatToDoubleMatrix(float[] src, double[] dst)
+    {
+        for(int mI = 0; mI < 16; mI++)
+        {
+            dst[mI] = src[mI];
+        }
+    }
+
     private void updateCamera() {
+
+        mBob.setVisible(true);
+        mBob.setPosition(mPosition);
+        mBob.setOrientation(mOrientation);
+
+        /*
         if (modelViewMat != null) {
             float[] m = modelViewMat;
 
-            /*
+            mPosition.setAll(m[12], m[13], m[14]);
+            double[] mModelViewMatrix = new double[16];
+            copyFloatToDoubleMatrix(modelViewMat, mModelViewMatrix);
+            mOrientation.fromMatrix(mModelViewMatrix);
+
+            if (vuforiaAppSession.mIsPortrait) {
+//                camUp = new SimpleVector(-m[0], -m[1], -m[2]);
+                double orX = mOrientation.x;
+                mOrientation.x = -mOrientation.y;
+                mOrientation.y = -orX;
+                mOrientation.z = -mOrientation.z;
+            } else {
+                //camUp = new SimpleVector(-m[4], -m[5], -m[6]);
+                mOrientation.y = -mOrientation.y;
+                mOrientation.z = -mOrientation.z;
+            }
+            mSphere.setPosition(mPosition);
+
+//            settingItem.setVisible(true);
+//            settingItem.setPosition(mPosition);
+//            settingItem.setOrientation(mOrientation);
+
             final SimpleVector camUp;
             if (vuforiaAppSession.mIsPortrait) {
                 camUp = new SimpleVector(-m[0], -m[1], -m[2]);
@@ -341,14 +421,83 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
             cam.setFOV(fov);
             cam.setYFOV(fovy);
-            */
         }
+        */
     }
 
 
     //---------------------------------------------
+    private Vector3 mPosition;
+    private Quaternion mOrientation;
+
+    private DirectionalLight          mLight;
+    private SkeletalAnimationObject3D mBob;
+
     @Override
     protected void initScene() {
+//        //实例化虚拟世界
+//        world = new World();
+//        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
+//        world.setAmbientLight(255, 255, 255);
+//        world.setClippingPlanes(1.0f, 3000.0f);
+//        sun = new Light(world);
+//        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
+//        sun.setIntensity(255, 255, 255);
+//        //初始化模型集合
+//        initObjList();
+//        //垃圾回收，针对旧手机
+//        MemoryHelper.compact();
+
+//        DirectionalLight light = new DirectionalLight(0.2f, -1f, 0f);
+//        light.setPower(.7f);
+//        getCurrentScene().addLight(light);
+//        light = new DirectionalLight(0.2f, 1f, 0f);
+//        light.setPower(1f);
+//        getCurrentScene().addLight(light);
+
+//        getCurrentCamera().setNearPlane(0.01f);
+//        getCurrentCamera().setFarPlane(100.0f);
+//        getCurrentCamera().enableLookAt();
+//        getCurrentCamera().setPosition(0, 0, 10);
+//        getCurrentCamera().setLookAt(0, 0, 0);
+
+        getCurrentCamera().setNearPlane(10f);
+        getCurrentCamera().setFarPlane(2500f);
+//        getCurrentCamera().enableLookAt();
+//        getCurrentCamera().setLookAt(0, 0, 0);
+//        getCurrentCamera().setZ(10);
+//        getCurrentCamera().setOrientation(getCurrentCamera().getOrientation().inverse());
+
+
+        try {
+            mLight = new DirectionalLight(.1f, 0, -1.0f);
+            mLight.setColor(1.0f, 1.0f, 0.8f);
+            mLight.setPower(1);
+
+            getCurrentScene().addLight(mLight);
+
+            LoaderMD5Mesh meshParser = new LoaderMD5Mesh(this,
+                    R.raw.boblampclean_mesh);
+            meshParser.parse();
+            mBob = (SkeletalAnimationObject3D) meshParser
+                    .getParsedAnimationObject();
+            mBob.setScale(2);
+
+            LoaderMD5Anim animParser = new LoaderMD5Anim("dance", this,
+                    R.raw.boblampclean_anim);
+            animParser.parse();
+            mBob.setAnimationSequence((SkeletalAnimationSequence) animParser
+                    .getParsedAnimationSequence());
+
+            getCurrentScene().addChild(mBob);
+
+            mBob.play();
+            mBob.setVisible(false);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Logger.e("加载模型出错了++++++++++++++++++++++++");
+        }
 
     }
 
@@ -390,6 +539,8 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         renderFrame();
         //更新相机
         updateCamera();
+
+
         //模型旋转缩放操作
 //        if (current != null) {
 //            switchModel(current);

@@ -529,6 +529,9 @@ public class SampleApplicationSession implements UpdateCallbackInterface {
         }
     }
 
+    public int mVideoWidth;
+    public int mVideoHeight;
+
     // jpct-ae
     private void setVideoSize(int videoWidth, int videoHeight) {
 
@@ -541,6 +544,9 @@ public class SampleApplicationSession implements UpdateCallbackInterface {
         int widestScreen = width > height ? width : height;
 
         float diff = (widestVideo - widestScreen) / 2;
+
+        mVideoWidth = widestVideo;
+        mVideoHeight = widestScreen;
 
         //Config.viewportOffsetY = diff / widestScreen; // TODO
     }

@@ -31,6 +31,8 @@ import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
 
+import org.rajawali3d.view.SurfaceView;
+
 import java.util.ArrayList;
 
 public class ImageTargetsActivity extends Activity implements SampleApplicationControl {
@@ -80,8 +82,8 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         vuforiaAppSession = new SampleApplicationSession(this);
         startLoadingAnimation();
         //添加你下载的图片数据库的xml文件
-        mDatasetStrings.add("dataset.xml");
-//        mDatasetStrings.add("StonesAndChips.xml"); // 和模型有关系？？？
+        //mDatasetStrings.add("dataset.xml");
+        mDatasetStrings.add("StonesAndChips.xml"); // 和模型有关系？？？
 //        mDatasetStrings.add("Tarmac.xml");
 
         vuforiaAppSession.initAR(this, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
