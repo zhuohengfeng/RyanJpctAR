@@ -41,6 +41,7 @@ import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.materials.textures.TextureManager;
+import org.rajawali3d.math.Matrix;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Plane;
@@ -310,20 +311,25 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             //当前扫描的图片
             // Log.e("TAG", "目标文件: " + trackable.getName());
             Matrix44F modelViewMatrix = Tool.convertPose2GLMatrix(result.getPose());
-            printMatrix("modelViewMatrix", modelViewMatrix.getData());
-            Matrix44F inverseMV = SampleMath.Matrix44FInverse(modelViewMatrix);
-            printMatrix("inverseMV", inverseMV.getData());
-            Matrix44F invTranspMV = SampleMath.Matrix44FTranspose(inverseMV);
-            printMatrix("invTranspMV", invTranspMV.getData());
+            double[] inverseMV = new double[16];
+            copyFloatToDoubleMatrix(modelViewMatrix.getData(), inverseMV);
+            Matrix.rotateM(inverseMV, 0, -90, 1, 0, 0);
 
-            transformPositionAndOrientation(invTranspMV.getData());
+            float[] invTranspMV = new float[16];
+            copyDoubleToFloatMatrix(inverseMV, invTranspMV);
 
-            try {
-                //先移除所有模型，以免模型重复叠加
-//                world.removeAllObjects();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+
+            //Matrix44F inverseMV = SampleMath.Matrix44FInverse(modelViewMatrix);
+            //Matrix44F invTranspMV = SampleMath.Matrix44FTranspose(inverseMV);
+
+            transformPositionAndOrientation(invTranspMV);
+
+//            try {
+//                //先移除所有模型，以免模型重复叠加
+////                world.removeAllObjects();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
             //重新获取当前扫描图片的模型
 //            for (int i = 0; i < objList.size(); i++) {
@@ -342,8 +348,8 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 //                }
 //            }
 
-            modelviewArray = invTranspMV.getData();
-            updateModelViewMatrix(modelviewArray);
+//            modelviewArray = invTranspMV.getData();
+            updateModelViewMatrix(invTranspMV);
         }
 
         // 没有检测到图片目标则隐藏3D模型
@@ -354,7 +360,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
                     0, 0, 1, 0,
                     0, 0, -10000, 1 // z = -10000
             };
-            //updateModelViewMatrix(modelviewArray);
+            updateModelViewMatrix(modelviewArray);
         }
         mRenderer.end();
     }
@@ -370,6 +376,15 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             dst[mI] = src[mI];
         }
     }
+
+    private void copyDoubleToFloatMatrix(double[] src, float[] dst)
+    {
+        for(int mI = 0; mI < 16; mI++)
+        {
+            dst[mI] = (float) src[mI];
+        }
+    }
+
 
     private void updateCamera() {
 
@@ -471,8 +486,8 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
         try {
             mLight = new DirectionalLight(.1f, 0, -1.0f);
-            mLight.setColor(1.0f, 1.0f, 0.8f);
-            mLight.setPower(1);
+            mLight.setColor(1.0f, 1.0f, 1.0f);
+            mLight.setPower(3);
 
             getCurrentScene().addLight(mLight);
 
