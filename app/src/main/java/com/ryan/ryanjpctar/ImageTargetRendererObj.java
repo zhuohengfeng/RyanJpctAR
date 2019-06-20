@@ -339,7 +339,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private Quaternion mOrientation;
 
     private DirectionalLight          mLight;
-    private SkeletalAnimationObject3D mBob;
+//    private SkeletalAnimationObject3D mBob;
 
     private Object3D mSphere;
 
@@ -359,30 +359,29 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
             getCurrentScene().addLight(mLight);
 
+            /*
             LoaderMD5Mesh meshParser = new LoaderMD5Mesh(this,
                     R.raw.boblampclean_mesh);
             meshParser.parse();
             mBob = (SkeletalAnimationObject3D) meshParser
                     .getParsedAnimationObject();
             mBob.setScale(3);
-
             LoaderMD5Anim animParser = new LoaderMD5Anim("dance", this,
                     R.raw.boblampclean_anim);
             animParser.parse();
             mBob.setAnimationSequence((SkeletalAnimationSequence) animParser
                     .getParsedAnimationSequence());
-
             getCurrentScene().addChild(mBob);
-
             //mBob.play();
             mBob.setVisible(false);
+            */
 
             //------------
             Material material = new Material();
             material.addTexture(new Texture("earthColors",
                     R.drawable.earthtruecolor_nasa_big));
             material.setColorInfluence(0);
-            mSphere = new Sphere(10, 50, 50);
+            mSphere = new Sphere(10, 25, 25); // segments越大，越精细
             mSphere.setScale(10);
             mSphere.setMaterial(material);
             getCurrentScene().addChild(mSphere);
@@ -430,9 +429,9 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         //更新相机
         updatePositionAndOrientation();
         //模型旋转缩放操作
-        if (mBob != null) {
-            switchModel(mBob);
-        }
+//        if (mBob != null) {
+//            switchModel(mBob);
+//        }
         if (mSphere != null) {
             mSphere.rotate(Vector3.Axis.Y, 1.0);
         }
@@ -440,29 +439,29 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
     private void updatePositionAndOrientation() {
         //mBob.setVisible(true);
-        mBob.setPosition(mPosition);
+        //mBob.setPosition(mPosition);
         //mBob.setOrientation(mOrientation);
 
         mSphere.setPosition(mPosition);
-        mSphere.setOrientation(mOrientation);
+        //mSphere.setOrientation(mOrientation);
     }
 
 
     private void onFoundMarker(){
-        if (mBob != null) {
-            mBob.play();
-            mBob.setVisible(true);
-        }
+//        if (mBob != null) {
+//            mBob.play();
+//            mBob.setVisible(true);
+//        }
         if (mSphere != null) {
             mSphere.setVisible(true);
         }
     }
 
     private void onNoFoundMarker(){
-        if (mBob != null) {
-            mBob.pause();
-            mBob.setVisible(false);
-        }
+//        if (mBob != null) {
+//            mBob.pause();
+//            mBob.setVisible(false);
+//        }
         if (mSphere != null) {
             mSphere.setVisible(false);
         }

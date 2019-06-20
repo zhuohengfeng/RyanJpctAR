@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Process;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.RelativeLayout;
 
 import com.ryan.ryanjpctar.vuforia.SampleApplicationControl;
@@ -76,6 +78,8 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(LOG_TAG, "onCreate");
+        hideStatusNavigationBar();
+
         super.onCreate(savedInstanceState);
         vuforiaAppSession = new SampleApplicationSession(this);
         startLoadingAnimation();
@@ -542,5 +546,20 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
          * 模型缩放
          */
         void modelScale(float scale);
+    }
+
+
+
+    private void hideStatusNavigationBar(){
+        if(Build.VERSION.SDK_INT<16){
+            this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }else{
+            int uiFlags = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN //hide statusBar
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION; //hide navigationBar
+            getWindow().getDecorView().setSystemUiVisibility(uiFlags);
+        }
     }
 }
