@@ -38,15 +38,19 @@ import com.vuforia.ViewList;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.animation.mesh.SkeletalAnimationObject3D;
 import org.rajawali3d.animation.mesh.SkeletalAnimationSequence;
+import org.rajawali3d.bounds.IBoundingVolume;
 import org.rajawali3d.lights.DirectionalLight;
 import org.rajawali3d.loader.md5.LoaderMD5Anim;
 import org.rajawali3d.loader.md5.LoaderMD5Mesh;
 import org.rajawali3d.materials.Material;
+import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture;
+import org.rajawali3d.materials.textures.AlphaMapTexture;
 import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.Matrix;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
+import org.rajawali3d.primitives.Plane;
 import org.rajawali3d.primitives.ScreenQuad;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.renderer.RenderTarget;
@@ -348,6 +352,8 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
     private Object3D mSphere;
 
+    private Plane mAim;
+
     // 绘制相机背景
     private RenderTarget mBackgroundRenderTarget;
     private ScreenQuad mBackgroundQuad;
@@ -363,6 +369,23 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             mLight.setPower(3);
 
             getCurrentScene().addLight(mLight);
+
+
+            mAim = new Plane(5, 5, 1, 1);
+            Material aimMaterial = new Material();
+            aimMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
+            aimMaterial.setColorInfluence(0);
+            AlphaMapTexture aimTexture = new AlphaMapTexture("aimTexture", R.drawable.camden_town_alpha);
+            try {
+                aimMaterial.addTexture(aimTexture);
+            } catch (ATexture.TextureException e) {
+                e.printStackTrace();
+            }
+            mAim.setMaterial(aimMaterial);
+            mAim.setPosition(0, 0, -10000);
+            getCurrentScene().addChild(mAim);
+
+
 
             /*
             LoaderMD5Mesh meshParser = new LoaderMD5Mesh(this,
@@ -437,8 +460,28 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 //        if (mBob != null) {
 //            switchModel(mBob);
 //        }
-        if (mSphere != null) {
+        if (mSphere != null && mSphere.isVisible()) {
             mSphere.rotate(Vector3.Axis.Y, 1.0);
+            mAim.setZ(mSphere.getZ());
+
+            // 判断是否碰撞
+            IBoundingVolume bbox = mSphere.getGeometry().getBoundingBox();
+            bbox.transform(mSphere.getModelMatrix());
+            IBoundingVolume bbox2 = mAim.getGeometry().getBoundingBox();
+            bbox2.transform(mAim.getModelMatrix());
+
+            boolean isCollision = bbox.intersectsWith(bbox2);
+
+            if (isCollision) {
+                Logger.d("检测到了！！！");
+                mSphere.setScale(12f);
+            }
+            else {
+                mSphere.setScale(10f);
+            }
+        }
+        else {
+            mAim.setZ(-10000);
         }
     }
 
