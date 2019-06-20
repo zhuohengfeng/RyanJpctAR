@@ -529,10 +529,17 @@ public class SampleApplicationSession implements UpdateCallbackInterface {
         }
     }
 
-    public int mVideoWidth;
-    public int mVideoHeight;
+    private int mVideoWidth;
+    private int mVideoHeight;
 
-    // jpct-ae
+    public int getVideoWidth() {
+        return mVideoWidth;
+    }
+
+    public int getVideoHeight() {
+        return mVideoHeight;
+    }
+
     private void setVideoSize(int videoWidth, int videoHeight) {
 
         DisplayMetrics displaymetrics = new DisplayMetrics();
@@ -594,7 +601,6 @@ public class SampleApplicationSession implements UpdateCallbackInterface {
 
         // Set the config
         Renderer.getInstance().setVideoBackgroundConfig(config);
-
     }
 
     // Returns true if Vuforia is initialized, the trackers started and the

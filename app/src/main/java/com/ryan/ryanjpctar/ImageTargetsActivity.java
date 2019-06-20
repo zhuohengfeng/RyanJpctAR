@@ -31,8 +31,6 @@ import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
 
-import org.rajawali3d.view.SurfaceView;
-
 import java.util.ArrayList;
 
 public class ImageTargetsActivity extends Activity implements SampleApplicationControl {

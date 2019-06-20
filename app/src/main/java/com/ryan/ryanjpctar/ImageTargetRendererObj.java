@@ -10,17 +10,13 @@ package com.ryan.ryanjpctar;
 
 import android.content.pm.ActivityInfo;
 import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
 
 import com.ryan.ryanjpctar.vuforia.utils.Logger;
-import com.ryan.ryanjpctar.vuforia.utils.SampleMath;
 import com.vuforia.CameraCalibration;
-import com.vuforia.CameraDevice;
 import com.vuforia.Matrix44F;
 import com.vuforia.Renderer;
 import com.vuforia.State;
@@ -28,7 +24,6 @@ import com.vuforia.Tool;
 import com.vuforia.Trackable;
 import com.vuforia.TrackableResult;
 import com.vuforia.Vec2F;
-import com.vuforia.Vuforia;
 
 import org.rajawali3d.Object3D;
 import org.rajawali3d.animation.mesh.SkeletalAnimationObject3D;
@@ -37,18 +32,12 @@ import org.rajawali3d.lights.DirectionalLight;
 import org.rajawali3d.loader.md5.LoaderMD5Anim;
 import org.rajawali3d.loader.md5.LoaderMD5Mesh;
 import org.rajawali3d.materials.Material;
-import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture;
-import org.rajawali3d.materials.textures.Texture;
-import org.rajawali3d.materials.textures.TextureManager;
 import org.rajawali3d.math.Matrix;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
-import org.rajawali3d.primitives.Plane;
-import org.rajawali3d.primitives.Sphere;
-
-import java.util.ArrayList;
-import java.util.Collections;
+import org.rajawali3d.primitives.ScreenQuad;
+import org.rajawali3d.renderer.RenderTarget;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -63,34 +52,11 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private ImageTargetsActivity mActivity;
     private Renderer mRenderer;
     boolean mIsActive = false;
-    /**
-     * jpct中的世界
-     */
-//    private World world;
-//    private Camera cam;
-//    private FrameBuffer fb;
+
     private float[] modelViewMat;
     private float fov;
     private float fovy;
     private double[] mModelViewMatrix;
-    /**
-     * jpct中的灯光
-     */
-//    private Light sun;
-    /**
-     * jpct中的一个3d模型文件
-     * 该属性表示当前的模型
-     */
-//    private Object3D current;
-
-    /**
-     * 模型集合
-     */
-//    private List<ObjItem> objList = new ArrayList<>();
-    /**
-     * Assets文件中模型和图片纹理的名字
-     */
-    private String[] objName = {"01", "02"};
 
     ImageTargetRendererObj(ImageTargetsActivity activity, SampleApplicationSession session) {
         super(activity);
@@ -104,71 +70,11 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     }
 
 
-    /*
-    private void initObjList() {
-        //将所有模型文件放到List中
-        for (String anObjName : objName) {
-            ObjItem item = new ObjItem();
-            item.setIndex(anObjName);
-            //有些模型的纹理图片不止一个，你需要另外处理
-            item.setTextures(Collections.singletonList(anObjName + ".jpg"));
-            //设置纹理名字
-            item.setTexturesName(Collections.singletonList(anObjName));
-            //设置ser序列化文件的路径
-            item.setSer("ser/" + anObjName + ".ser");
-            objList.add(item);
-        }
-
-        try {
-            for (int i = 0; i < objList.size(); i++) {
-                ObjItem m = objList.get(i);
-                //加载序列化文件的方法，对应有 Loader.loadOBJ() 、Loader.loadMD2() ....
-                Object3D[] tmp = Loader.loadSerializedObjectArray(mActivity.getAssets().open(m.getSer()));
-                for (int j = 0; m.getTextures() != null && j < m.getTextures().size(); j++) {
-                    //模型纹理管理，第一个参数：纹理名字，第二个参数：对应纹理图片
-                    TextureManager.getInstance().addTexture(m.getTexturesName().get(j),
-                            new Texture(mActivity.getAssets().open(m.getTextures().get(j))));
-                }
-                if (tmp != null && tmp.length >= 1) {
-                    //将当前obj3D存起来
-                    m.setTarget(tmp[0]);
-                }
-                m.getTarget().strip();
-                m.getTarget().build();
-
-                if (m.getTextures() != null) {
-                    for (int z = 0; z < m.getTextures().size(); z++) {
-                        //设置纹理
-                        m.getTarget().setTexture(m.getTexturesName().get(z));
-                    }
-                }
-                //将obj添加到世界中
-                world.addObject(m.getTarget());
-                cam = world.getCamera();
-
-                SimpleVector sv = new SimpleVector();
-                sv.set(m.getTarget().getTransformedCenter());
-                sv.y -= 100;
-                sv.z -= 100;
-                sun.setPosition(sv);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("TAG", "init: failed" + e);
-        }
-    }
-    */
-
-
-
-//    private RGBColor back = new RGBColor(50, 50, 100);
 
     /**
      * 旋转缩放模型的方法
      * 通过ImageTargets中监听屏幕事件的方法来达到旋转模型的效果
      */
-    /*
     private void switchModel(final Object3D item) {
         //通过ImageTargets的手势回调
         mActivity.setOnModelChangeListener(new ImageTargetsActivity.OnModelChangeListener() {
@@ -184,42 +90,46 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
                 if (this.touchTurn != 0) {
                     // 旋转物体的旋转绕Y由给定矩阵W轴角（弧度顺时针方向为正值）,应用到对象下一次渲染时。
                     if (Math.abs(this.touchTurn) > 0.01) {
-                        item.rotateY(this.touchTurn);
+//                        item.rotateY(this.touchTurn);
+                        Logger.d("switchModel rotateY  this.touchTurn="+ this.touchTurn);
+                        item.rotate(Vector3.Axis.Y, this.touchTurn * 360f);
                     }
                     // 将touchTurn置0
                     this.touchTurn = 0;
                 }
                 if (this.touchTurnUp != 0) {
                     // 旋转物体的旋转围绕x由给定角度宽（弧度，逆时针为正值）轴矩阵,应用到对象下一次渲染时。
-                    item.rotateX(this.touchTurnUp);
+//                    item.rotateX(this.touchTurnUp);
+                    Logger.d("switchModel rotateX  this.touchTurnUp="+ this.touchTurnUp);
+                    item.rotate(Vector3.Axis.X, this.touchTurnUp * 360f);
                     // 将touchTureUp置0
                     this.touchTurnUp = 0;
                 }
-                fb.clear(back);
+//                fb.clear(back);
             }
 
             @Override
             public void modelScale(float scale) {
-                mScale = mScale + scale;
-                float curScale = item.getScale();
-                if (curScale < 0.1 && mScale < 0.99) {
-                    //放大倍数小于0.1还要缩的时候 禁止缩放
-                    return;
-                }
-                if (curScale > 6 && mScale > 1.01) {
-                    return;
-                }
-                item.scale(mScale);
+//                mScale = mScale + scale;
+//                float curScale = item.getScale();
+//                if (curScale < 0.1 && mScale < 0.99) {
+//                    //放大倍数小于0.1还要缩的时候 禁止缩放
+//                    return;
+//                }
+//                if (curScale > 6 && mScale > 1.01) {
+//                    return;
+//                }
+//                item.scale(mScale);
             }
         });
     }
-    */
 
 
 
     // Function for initializing the renderer.    
     private void initRendering() {
         mRenderer = Renderer.getInstance();
+
         // Define clear color
         //GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
     }
@@ -246,21 +156,40 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             fovy = fovyRadians;
         }
 
-        float fovDegrees = (float) (fovRadians * 180.0f / Math.PI);
-        getCurrentCamera().setProjectionMatrix(fovDegrees, vuforiaAppSession.mVideoWidth,
-                vuforiaAppSession.mVideoHeight);
+        //------------------------------
+        if(mBackgroundRenderTarget == null) {
+            mBackgroundRenderTarget = new RenderTarget("camera_preview", width, height);
 
-        //getCurrentCamera().setFieldOfView(fov);
-        //getCurrentCamera().setProjectionMatrix(fov, width, height);
-    }
+            addRenderTarget(mBackgroundRenderTarget);
+            Material material = new Material();
+            material.setColorInfluence(0);
+            try {
+                material.addTexture(mBackgroundRenderTarget.getTexture());
+            } catch (ATexture.TextureException e) {
+                e.printStackTrace();
+            }
 
+            mBackgroundQuad = new ScreenQuad();
+//            if(!vuforiaAppSession.mIsPortrait) {
+//                mBackgroundQuad.setScaleY((float)height / (float)vuforiaAppSession.getVideoHeight());
+//            }
+//            else{
+//                mBackgroundQuad.setScaleX((float)width / (float)vuforiaAppSession.getVideoWidth());
+//            }
 
-    public static void printMatrix(String name, float[] matrix) {
-        StringBuilder build = new StringBuilder();
-        for (float f : matrix) {
-            build.append(f + " ");
+//            Logger.d("onConfigurationChanged: width="+width+", height="+height+", getScreenOrientation()="+mArManager.getScreenOrientation()
+//                    +", getVideoWidth()="+getVideoWidth()+", getVideoHeight()="+getVideoHeight());
+            mBackgroundQuad.setMaterial(material);
+            mBackgroundQuad.setRotation(0, 0, 1, 180f);
+            getCurrentScene().addChildAt(mBackgroundQuad, 0);
         }
-        Log.d("zhf-m:", name+": "+build.toString());
+
+
+
+        float fovDegrees = (float) (fovRadians * 180.0f / Math.PI);
+        Logger.d("updateRendering: fovDegrees="+fovDegrees+", getVideoWidth="+vuforiaAppSession.getVideoWidth()+", getVideoHeight="+vuforiaAppSession.getVideoHeight());
+        getCurrentCamera().setProjectionMatrix(fovDegrees, vuforiaAppSession.getVideoWidth(),
+                vuforiaAppSession.getVideoHeight());
     }
 
 
@@ -292,7 +221,6 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     }
 
 
-
     // The render function.
     private void renderFrame() {
         // clear color and depth buffer
@@ -300,7 +228,21 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         // get the state, and mark the beginning of a rendering section
         State state = mRenderer.begin();
         // explicitly render the video background
-//        mRenderer.drawVideoBackground();
+
+        // 开始绘制到模型上
+        int frameBufferId = mBackgroundRenderTarget.getFrameBufferHandle();
+        int frameBufferTextureId = mBackgroundRenderTarget.getTexture().getTextureId();
+        //当一个FBO绑定以后，所有的OpenGL操作将会作用在这个绑定的帧缓冲区对象上。
+//        GLES20.glEnable(GLES20.GL_CULL_FACE);
+//        GLES20.glCullFace(GLES20.GL_BACK);
+//        GLES20.glFrontFace(GLES20.GL_CW);   // Back camera
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferId);
+        //把一幅空的纹理图像关联到一个FBO 一个FBO在同一个时间内可以绑定多个颜色缓冲区，每个对应FBO的一个绑定点
+        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
+                GLES20.GL_TEXTURE_2D, frameBufferTextureId, 0);
+        mRenderer.drawVideoBackground();
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
 
         float[] modelviewArray;
         // did we find any trackables this frame?
@@ -386,60 +328,11 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     }
 
 
-    private void updateCamera() {
-
+    private void updatePositionAndOrientation() {
         mBob.setVisible(true);
         mBob.setPosition(mPosition);
         mBob.setOrientation(mOrientation);
-
-        /*
-        if (modelViewMat != null) {
-            float[] m = modelViewMat;
-
-            mPosition.setAll(m[12], m[13], m[14]);
-            double[] mModelViewMatrix = new double[16];
-            copyFloatToDoubleMatrix(modelViewMat, mModelViewMatrix);
-            mOrientation.fromMatrix(mModelViewMatrix);
-
-            if (vuforiaAppSession.mIsPortrait) {
-//                camUp = new SimpleVector(-m[0], -m[1], -m[2]);
-                double orX = mOrientation.x;
-                mOrientation.x = -mOrientation.y;
-                mOrientation.y = -orX;
-                mOrientation.z = -mOrientation.z;
-            } else {
-                //camUp = new SimpleVector(-m[4], -m[5], -m[6]);
-                mOrientation.y = -mOrientation.y;
-                mOrientation.z = -mOrientation.z;
-            }
-            mSphere.setPosition(mPosition);
-
-//            settingItem.setVisible(true);
-//            settingItem.setPosition(mPosition);
-//            settingItem.setOrientation(mOrientation);
-
-            final SimpleVector camUp;
-            if (vuforiaAppSession.mIsPortrait) {
-                camUp = new SimpleVector(-m[0], -m[1], -m[2]);
-            } else {
-                camUp = new SimpleVector(-m[4], -m[5], -m[6]);
-            }
-
-            final SimpleVector camDirection = new SimpleVector(m[8], m[9], m[10]);
-            final SimpleVector camPosition = new SimpleVector(m[12], m[13], m[14]);
-
-            cam = world.getCamera();
-
-
-            cam.setOrientation(camDirection, camUp);
-            cam.setPosition(camPosition);
-
-            cam.setFOV(fov);
-            cam.setYFOV(fovy);
-        }
-        */
     }
-
 
     //---------------------------------------------
     private Vector3 mPosition;
@@ -448,41 +341,15 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private DirectionalLight          mLight;
     private SkeletalAnimationObject3D mBob;
 
+    private Object3D mCurrentObj;
+
+    private RenderTarget mBackgroundRenderTarget; // 绘制相机背景
+    private ScreenQuad mBackgroundQuad;
+
     @Override
     protected void initScene() {
-//        //实例化虚拟世界
-//        world = new World();
-//        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
-//        world.setAmbientLight(255, 255, 255);
-//        world.setClippingPlanes(1.0f, 3000.0f);
-//        sun = new Light(world);
-//        // 如果亮度太暗或是亮度怪怪的，可以調整這裡
-//        sun.setIntensity(255, 255, 255);
-//        //初始化模型集合
-//        initObjList();
-//        //垃圾回收，针对旧手机
-//        MemoryHelper.compact();
-
-//        DirectionalLight light = new DirectionalLight(0.2f, -1f, 0f);
-//        light.setPower(.7f);
-//        getCurrentScene().addLight(light);
-//        light = new DirectionalLight(0.2f, 1f, 0f);
-//        light.setPower(1f);
-//        getCurrentScene().addLight(light);
-
-//        getCurrentCamera().setNearPlane(0.01f);
-//        getCurrentCamera().setFarPlane(100.0f);
-//        getCurrentCamera().enableLookAt();
-//        getCurrentCamera().setPosition(0, 0, 10);
-//        getCurrentCamera().setLookAt(0, 0, 0);
-
         getCurrentCamera().setNearPlane(10f);
         getCurrentCamera().setFarPlane(2500f);
-//        getCurrentCamera().enableLookAt();
-//        getCurrentCamera().setLookAt(0, 0, 0);
-//        getCurrentCamera().setZ(10);
-//        getCurrentCamera().setOrientation(getCurrentCamera().getOrientation().inverse());
-
 
         try {
             mLight = new DirectionalLight(.1f, 0, -1.0f);
@@ -508,12 +375,13 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
             mBob.play();
             mBob.setVisible(false);
+
+            mCurrentObj = mBob;
         }
         catch (Exception e) {
             e.printStackTrace();
-            Logger.e("加载模型出错了++++++++++++++++++++++++");
+            Logger.e("加载模型出错了！！");
         }
-
     }
 
     // Called when the surface is created or recreated.
@@ -533,11 +401,6 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     @Override
     public void onRenderSurfaceSizeChanged(GL10 gl, int width, int height) {
         super.onRenderSurfaceSizeChanged(gl, width, height);
-//        if (fb != null) {
-//            fb.dispose();
-//        }
-//        fb = new FrameBuffer(width, height);
-//        Config.viewportOffsetAffectsRenderTarget = true;
 
         updateRendering(width, height);
         // Call Vuforia function to handle render surface size changes:
@@ -553,16 +416,11 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         //渲染
         renderFrame();
         //更新相机
-        updateCamera();
-
-
+        updatePositionAndOrientation();
         //模型旋转缩放操作
-//        if (current != null) {
-//            switchModel(current);
-//        }
-//        world.renderScene(fb);
-//        world.draw(fb);
-//        fb.display();
+        if (mCurrentObj != null) {
+            switchModel(mCurrentObj);
+        }
     }
 
 
