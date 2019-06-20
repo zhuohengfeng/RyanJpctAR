@@ -13,6 +13,7 @@ import android.opengl.GLES20;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import com.ryan.ryanjpctar.cardboard.VRRenderer;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
 
@@ -55,7 +56,6 @@ import org.rajawali3d.primitives.ScreenQuad;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.renderer.RenderTarget;
 
-import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -65,10 +65,10 @@ import javax.microedition.khronos.opengles.GL10;
  *
  * @author Admin
  */
-public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
+public class ImageTargetRendererObj extends VRRenderer {
     private SampleApplicationSession vuforiaAppSession;
     private ImageTargetsActivity mActivity;
-    private Renderer mRenderer;
+    private Renderer mArRenderer;
     boolean mIsActive = false;
 
     private Vector3 mPosition;
@@ -89,7 +89,6 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         mOrientation = new Quaternion();
         mModelViewMatrix = new double[16];
     }
-
 
 
     /**
@@ -149,7 +148,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
     // Function for initializing the renderer.    
     private void initRendering() {
-        mRenderer = Renderer.getInstance();
+        mArRenderer = Renderer.getInstance();
         // Define clear color
         //GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
     }
@@ -247,7 +246,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         // clear color and depth buffer
 //        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         // get the state, and mark the beginning of a rendering section
-        State state = mRenderer.begin();
+        State state = mArRenderer.begin();
         // explicitly render the video background
 
         // 开始绘制到模型上
@@ -256,7 +255,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferId);
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
                 GLES20.GL_TEXTURE_2D, frameBufferTextureId, 0);
-        mRenderer.drawVideoBackground();
+        mArRenderer.drawVideoBackground();
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 
         float[] modelviewArray;
@@ -320,7 +319,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 //            updateModelViewMatrix(modelviewArray);
             onNoFoundMarker();
         }
-        mRenderer.end();
+        mArRenderer.end();
     }
 
 //    private void updateModelViewMatrix(float mat[]) {
@@ -473,13 +472,11 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         }
     }
 
-    // Called when the surface is created or recreated.
     @Override
-    public void onRenderSurfaceCreated(EGLConfig config, GL10 gl, int width, int height) {
-        super.onRenderSurfaceCreated(config, gl, width, height);
-
+    public void onSurfaceCreated(EGLConfig eglConfig) {
+        super.onSurfaceCreated(eglConfig);
+        Logger.d("ImageTargetRendererObj: onSurfaceCreated");
         initRendering(); // NOTE: Cocokin sama cpp - DONE
-
 
         // Call Vuforia function to (re)initialize rendering after first use
         // or after OpenGL ES context was lost (e.g. after onPause/onResume):
@@ -487,11 +484,13 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
         // Hide the Loading Dialog
         mActivity.loadingDialogHandler.sendEmptyMessageDelayed(LoadingDialogHandler.HIDE_LOADING_DIALOG, 5000);
+
     }
 
     @Override
-    public void onRenderSurfaceSizeChanged(GL10 gl, int width, int height) {
-        super.onRenderSurfaceSizeChanged(gl, width, height);
+    public void onSurfaceChanged(int width, int height) {
+        super.onSurfaceChanged(width, height);
+        Logger.d("ImageTargetRendererObj: onSurfaceChanged width="+width+", height="+height);
 
         updateRendering(width, height);
         // Call Vuforia function to handle render surface size changes:
@@ -499,8 +498,8 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     }
 
     @Override
-    public void onRenderFrame(GL10 gl) {
-        super.onRenderFrame(gl);
+    protected void onRender(long elapsedRealtime, double deltaTime) {
+        super.onRender(elapsedRealtime, deltaTime);
         if (!mIsActive) {
             return;
         }
@@ -523,6 +522,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             }
         }
 
+        /*
         if (mItemPlay.isVisible()) {
             if (isCollision(mItemPlay)) {
                 mItemPlay.setScale(1.5f);
@@ -549,23 +549,25 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
                 mItemBack.setScale(1.0f);
             }
         }
+        */
     }
 
     private void showMenu() {
         mItemTrack.setVisible(true);
         mItemPlay.setVisible(true);
-        mItemBack.setVisible(false);
+        mItemBack.setVisible(true);
+        mSphere.setVisible(true);
     }
 
-    private void showBackMenu() {
+    private void hideMenu() {
         mItemTrack.setVisible(false);
         mItemPlay.setVisible(false);
-        mItemBack.setVisible(true);
+        mItemBack.setVisible(false);
+        mSphere.setVisible(false);
     }
 
 
     private boolean isCollision(Object3D collisionObj) {
-        mAim.setVisible(true);
         mAim.setZ(collisionObj.getZ());
 
         // 判断是否碰撞
@@ -575,7 +577,6 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         bbox2.transform(mAim.getModelMatrix());
 
         boolean isCollision = bbox.intersectsWith(bbox2);
-        mAim.setVisible(false);
         return isCollision;
     }
 
@@ -583,6 +584,10 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         //mBob.setVisible(true);
         //mBob.setPosition(mPosition);
         //mBob.setOrientation(mOrientation);
+
+        mItemTrack.setPosition(mPosition.x, mPosition.y + 10, mPosition.z);
+        mItemPlay.setPosition(mPosition.x, mPosition.y, mPosition.z);
+        mItemBack.setPosition(mPosition.x, mPosition.y - 10, mPosition.z);
 
         mSphere.setPosition(mPosition);
         //mSphere.setOrientation(mOrientation);
@@ -594,9 +599,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 //            mBob.play();
 //            mBob.setVisible(true);
 //        }
-        if (mSphere != null) {
-            mSphere.setVisible(true);
-        }
+        showMenu();
     }
 
     private void onNoFoundMarker(){
@@ -604,9 +607,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 //            mBob.pause();
 //            mBob.setVisible(false);
 //        }
-        if (mSphere != null) {
-            mSphere.setVisible(false);
-        }
+        hideMenu();
     }
 
 

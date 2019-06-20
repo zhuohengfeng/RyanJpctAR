@@ -18,6 +18,8 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 
+import com.google.vrtoolkit.cardboard.CardboardActivity;
+import com.ryan.ryanjpctar.cardboard.VRSurfaceView;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationControl;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationException;
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
@@ -35,7 +37,7 @@ import com.vuforia.Vuforia;
 
 import java.util.ArrayList;
 
-public class ImageTargetsActivity extends Activity implements SampleApplicationControl {
+public class ImageTargetsActivity extends CardboardActivity implements SampleApplicationControl {
     private static final String LOG_TAG = "ImageTargets";
 
     SampleApplicationSession vuforiaAppSession;
@@ -49,7 +51,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     /**
      * GLSurfaceView，openGl的视图，显示3D模型
      */
-    private SampleApplicationGLView mGlView;
+    private VRSurfaceView mGlView;
 
     /**
      * 渲染类，识别图片并显示3D模型的类
@@ -142,7 +144,9 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
             mGlView.setVisibility(View.VISIBLE);
             mGlView.onResume();
         }
-
+        if (mRenderer != null) {
+            mRenderer.onResume();
+        }
     }
 
 
@@ -164,6 +168,9 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         if (mGlView != null) {
             mGlView.setVisibility(View.INVISIBLE);
             mGlView.onPause();
+        }
+        if (mRenderer != null) {
+            mRenderer.onPause();
         }
 
         try {
@@ -196,11 +203,15 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         int stencilSize = 0;
         boolean translucent = Vuforia.requiresAlpha();
 
-        mGlView = new SampleApplicationGLView(this);
-        mGlView.init(translucent, depthSize, stencilSize);
+        mGlView = new VRSurfaceView(this);
+        mGlView.setVRModeEnabled(false);
+        mGlView.setSettingsButtonEnabled(false);
+//        mGlView.init(translucent, depthSize, stencilSize);
         mRenderer = new ImageTargetRendererObj(this, vuforiaAppSession);
-        mGlView.setSurfaceRenderer(mRenderer);
+        mGlView.setRenderer(mRenderer);
+        setCardboardView(mGlView);
 
+        setConvertTapIntoTrigger(true);
     }
 
     /**
