@@ -71,6 +71,9 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private Renderer mRenderer;
     boolean mIsActive = false;
 
+    private Vector3 mPosition;
+    private Quaternion mOrientation;
+
 //    private float[] modelViewMat;
     private float fov;
     private float fovy;
@@ -344,15 +347,20 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
 
     //---------------------------------------------
-    private Vector3 mPosition;
-    private Quaternion mOrientation;
-
     private DirectionalLight          mLight;
 //    private SkeletalAnimationObject3D mBob;
 
     private Object3D mSphere;
 
     private Plane mAim;
+
+
+    // 3个设置项
+    private Plane mItemBack;
+    private Plane mItemPlay;
+    private Plane mItemTrack;
+    private boolean isInPlay = false;
+    private boolean isInTrack = false;
 
     // 绘制相机背景
     private RenderTarget mBackgroundRenderTarget;
@@ -385,7 +393,51 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             mAim.setPosition(0, 0, -10000);
             getCurrentScene().addChild(mAim);
 
+            //------------------------
 
+            Material backMaterial = new Material();
+            backMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
+            backMaterial.setColorInfluence(0);
+            Texture backTexture = new Texture("item_back", R.drawable.item_back);
+            try {
+                backMaterial.addTexture(backTexture);
+            } catch (ATexture.TextureException e) {
+                e.printStackTrace();
+            }
+            mItemBack = new Plane(20, 5, 1, 1);
+            mItemBack.setMaterial(backMaterial);
+            mItemBack.setPosition(0, 15, -40);
+            mItemBack.setVisible(false);
+            getCurrentScene().addChild(mItemBack);
+
+
+            Material playMaterial = new Material();
+            playMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
+            playMaterial.setColorInfluence(0);
+            Texture playTexture = new Texture("item_play", R.drawable.item_play);
+            try {
+                playMaterial.addTexture(playTexture);
+            } catch (ATexture.TextureException e) {
+                e.printStackTrace();
+            }
+            mItemPlay = new Plane(20, 5, 1, 1);
+            mItemPlay.setMaterial(playMaterial);
+            mItemPlay.setPosition(0, 5, -40);
+            getCurrentScene().addChild(mItemPlay);
+
+            Material trackMaterial = new Material();
+            trackMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
+            trackMaterial.setColorInfluence(0);
+            Texture trackTexture = new Texture("item_track", R.drawable.item_track);
+            try {
+                trackMaterial.addTexture(trackTexture);
+            } catch (ATexture.TextureException e) {
+                e.printStackTrace();
+            }
+            mItemTrack = new Plane(20, 5, 1, 1);
+            mItemTrack.setMaterial(trackMaterial);
+            mItemTrack.setPosition(0, -5, -40);
+            getCurrentScene().addChild(mItemTrack);
 
             /*
             LoaderMD5Mesh meshParser = new LoaderMD5Mesh(this,
@@ -462,27 +514,69 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 //        }
         if (mSphere != null && mSphere.isVisible()) {
             mSphere.rotate(Vector3.Axis.Y, 1.0);
-            mAim.setZ(mSphere.getZ());
-
-            // 判断是否碰撞
-            IBoundingVolume bbox = mSphere.getGeometry().getBoundingBox();
-            bbox.transform(mSphere.getModelMatrix());
-            IBoundingVolume bbox2 = mAim.getGeometry().getBoundingBox();
-            bbox2.transform(mAim.getModelMatrix());
-
-            boolean isCollision = bbox.intersectsWith(bbox2);
-
-            if (isCollision) {
-                Logger.d("检测到了！！！");
+            if (isCollision(mSphere)) {
+                Logger.d("isCollision 检测到了 mSphere");
                 mSphere.setScale(12f);
             }
             else {
                 mSphere.setScale(10f);
             }
         }
-        else {
-            mAim.setZ(-10000);
+
+        if (mItemPlay.isVisible()) {
+            if (isCollision(mItemPlay)) {
+                mItemPlay.setScale(1.5f);
+            }
+            else {
+                mItemPlay.setScale(1.0f);
+            }
         }
+
+        if (mItemTrack.isVisible()) {
+            if (isCollision(mItemTrack)) {
+                mItemTrack.setScale(1.5f);
+            }
+            else {
+                mItemTrack.setScale(1.0f);
+            }
+        }
+
+        if (mItemBack.isVisible()) {
+            if (isCollision(mItemBack)) {
+                mItemBack.setScale(1.5f);
+            }
+            else {
+                mItemBack.setScale(1.0f);
+            }
+        }
+    }
+
+    private void showMenu() {
+        mItemTrack.setVisible(true);
+        mItemPlay.setVisible(true);
+        mItemBack.setVisible(false);
+    }
+
+    private void showBackMenu() {
+        mItemTrack.setVisible(false);
+        mItemPlay.setVisible(false);
+        mItemBack.setVisible(true);
+    }
+
+
+    private boolean isCollision(Object3D collisionObj) {
+        mAim.setVisible(true);
+        mAim.setZ(collisionObj.getZ());
+
+        // 判断是否碰撞
+        IBoundingVolume bbox = collisionObj.getGeometry().getBoundingBox();
+        bbox.transform(collisionObj.getModelMatrix());
+        IBoundingVolume bbox2 = mAim.getGeometry().getBoundingBox();
+        bbox2.transform(mAim.getModelMatrix());
+
+        boolean isCollision = bbox.intersectsWith(bbox2);
+        mAim.setVisible(false);
+        return isCollision;
     }
 
     private void updatePositionAndOrientation() {
