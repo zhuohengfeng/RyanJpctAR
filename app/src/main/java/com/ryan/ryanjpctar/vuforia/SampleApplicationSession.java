@@ -609,14 +609,21 @@ public class SampleApplicationSession implements UpdateCallbackInterface {
         return mStarted;
     }
 
-    // jpct-ae
-    public void setmScreenWidth(int mScreenWidth) {
+    public void setScreenWidth(int mScreenWidth) {
         this.mScreenWidth = mScreenWidth;
     }
 
-    // jpct-ae
-    public void setmScreenHeight(int mScreenHeight) {
+    public int getScreenWidth() {
+        return this.mScreenWidth;
+    }
+
+    public void setScreenHeight(int mScreenHeight) {
         this.mScreenHeight = mScreenHeight;
     }
+
+    public int getScreenHeight() {
+        return this.mScreenHeight;
+    }
+
 
 }

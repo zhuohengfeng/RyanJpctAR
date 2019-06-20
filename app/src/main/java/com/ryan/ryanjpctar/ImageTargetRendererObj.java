@@ -149,8 +149,8 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
     private void updateRendering(int width, int height) {
         // Update screen dimensions
-        vuforiaAppSession.setmScreenWidth(width);
-        vuforiaAppSession.setmScreenHeight(height);
+        vuforiaAppSession.setScreenWidth(width);
+        vuforiaAppSession.setScreenHeight(height);
 
         // Reconfigure the video background
         vuforiaAppSession.configureVideoBackground();
@@ -196,9 +196,14 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         }
 
         float fovDegrees = (float) (fovRadians * 180.0f / Math.PI);
-        Logger.d("updateRendering: fovDegrees="+fovDegrees+", getVideoWidth="+vuforiaAppSession.getVideoWidth()+", getVideoHeight="+vuforiaAppSession.getVideoHeight());
-        getCurrentCamera().setProjectionMatrix(fovDegrees, vuforiaAppSession.getVideoWidth(),
-                vuforiaAppSession.getVideoHeight());
+        Logger.d("updateRendering: fovDegrees="+fovDegrees+
+                ", getVideoWidth="+vuforiaAppSession.getVideoWidth()+", getVideoHeight="+vuforiaAppSession.getVideoHeight()+
+                ", getScreenWidth="+vuforiaAppSession.getScreenWidth()+", getScreenHeight="+vuforiaAppSession.getScreenHeight());
+
+//        getCurrentCamera().setProjectionMatrix(fovDegrees, vuforiaAppSession.getVideoWidth(),
+//                vuforiaAppSession.getVideoHeight());
+        getCurrentCamera().setProjectionMatrix(fovDegrees, vuforiaAppSession.getScreenWidth(),
+                vuforiaAppSession.getScreenHeight());
     }
 
 
