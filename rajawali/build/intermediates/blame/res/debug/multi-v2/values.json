@@ -1,0 +1,52 @@
+{
+    "logs": [
+        {
+            "outputFile": "/Users/hengfeng/workspace/AR_VR/RyanJpctAR/rajawali/build/intermediates/res/merged/debug/values/values.xml",
+            "map": [
+                {
+                    "source": "/Users/hengfeng/workspace/AR_VR/RyanJpctAR/rajawali/src/main/res/values/attrs.xml",
+                    "from": {
+                        "startLines": "36,32,31,33,30,29,27,28,34,40,2,15",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "1243,1094,1048,1141,1001,956,860,905,1188,1391,55,478",
+                        "endLines": "39,32,31,33,30,29,27,28,34,43,13,25",
+                        "endColumns": "11,46,45,46,46,44,44,50,53,11,24,24",
+                        "endOffsets": "1386,1136,1089,1183,1043,996,900,951,1237,1545,472,854"
+                    },
+                    "to": {
+                        "startLines": "2,6,7,8,9,10,11,12,13,14,18,30",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,203,249,294,340,386,430,474,524,577,734,1148",
+                        "endLines": "5,6,7,8,9,10,11,12,13,17,29,40",
+                        "endColumns": "11,45,44,45,45,43,43,49,52,11,24,24",
+                        "endOffsets": "198,244,289,335,381,425,469,519,572,729,1143,1520"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "/Users/hengfeng/workspace/AR_VR/RyanJpctAR/rajawali/build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
+            "map": [
+                {
+                    "source": "/Users/hengfeng/workspace/AR_VR/RyanJpctAR/rajawali/src/main/res/values/attrs.xml",
+                    "from": {
+                        "startLines": "36,32,31,33,30,29,27,28,34,40,2,15",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "1243,1094,1048,1141,1001,956,860,905,1188,1391,55,478",
+                        "endLines": "39,32,31,33,30,29,27,28,34,43,13,25",
+                        "endColumns": "11,46,45,46,46,44,44,50,53,11,24,24",
+                        "endOffsets": "1386,1136,1089,1183,1043,996,900,951,1237,1545,472,854"
+                    },
+                    "to": {
+                        "startLines": "2,6,7,8,9,10,11,12,13,14,18,30",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,203,249,294,340,386,430,474,524,577,734,1148",
+                        "endLines": "5,6,7,8,9,10,11,12,13,17,29,40",
+                        "endColumns": "11,45,44,45,45,43,43,49,52,11,24,24",
+                        "endOffsets": "198,244,289,335,381,425,469,519,572,729,1143,1520"
+                    }
+                }
+            ]
+        }
+    ]
+}

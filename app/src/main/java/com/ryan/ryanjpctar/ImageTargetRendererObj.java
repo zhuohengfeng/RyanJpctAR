@@ -10,20 +10,30 @@ package com.ryan.ryanjpctar;
 
 import android.content.pm.ActivityInfo;
 import android.opengl.GLES20;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.ryan.ryanjpctar.vuforia.SampleApplicationSession;
 import com.ryan.ryanjpctar.vuforia.utils.LoadingDialogHandler;
 
 import com.ryan.ryanjpctar.vuforia.utils.Logger;
+import com.ryan.ryanjpctar.vuforia.utils.SampleUtils;
+import com.ryan.ryanjpctar.vuforia.utils.VideoBackgroundShader;
+import com.vuforia.COORDINATE_SYSTEM_TYPE;
 import com.vuforia.CameraCalibration;
+import com.vuforia.Device;
+import com.vuforia.GLTextureUnit;
 import com.vuforia.Matrix44F;
+import com.vuforia.Mesh;
 import com.vuforia.Renderer;
+import com.vuforia.RenderingPrimitives;
 import com.vuforia.State;
 import com.vuforia.Tool;
 import com.vuforia.Trackable;
 import com.vuforia.TrackableResult;
+import com.vuforia.VIEW;
 import com.vuforia.Vec2F;
+import com.vuforia.ViewList;
 
 import org.rajawali3d.Object3D;
 import org.rajawali3d.animation.mesh.SkeletalAnimationObject3D;
@@ -33,11 +43,15 @@ import org.rajawali3d.loader.md5.LoaderMD5Anim;
 import org.rajawali3d.loader.md5.LoaderMD5Mesh;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.textures.ATexture;
+import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.Matrix;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.ScreenQuad;
+import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.renderer.RenderTarget;
+
+import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -53,7 +67,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private Renderer mRenderer;
     boolean mIsActive = false;
 
-    private float[] modelViewMat;
+//    private float[] modelViewMat;
     private float fov;
     private float fovy;
     private double[] mModelViewMatrix;
@@ -129,7 +143,6 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     // Function for initializing the renderer.    
     private void initRendering() {
         mRenderer = Renderer.getInstance();
-
         // Define clear color
         //GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f : 1.0f);
     }
@@ -169,22 +182,18 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
                 e.printStackTrace();
             }
 
-            mBackgroundQuad = new ScreenQuad();
+            mBackgroundQuad = new ScreenQuad(ScreenQuad.UVmapping.CW);
 //            if(!vuforiaAppSession.mIsPortrait) {
 //                mBackgroundQuad.setScaleY((float)height / (float)vuforiaAppSession.getVideoHeight());
 //            }
 //            else{
 //                mBackgroundQuad.setScaleX((float)width / (float)vuforiaAppSession.getVideoWidth());
 //            }
-
 //            Logger.d("onConfigurationChanged: width="+width+", height="+height+", getScreenOrientation()="+mArManager.getScreenOrientation()
 //                    +", getVideoWidth()="+getVideoWidth()+", getVideoHeight()="+getVideoHeight());
             mBackgroundQuad.setMaterial(material);
-            mBackgroundQuad.setRotation(0, 0, 1, 180f);
             getCurrentScene().addChildAt(mBackgroundQuad, 0);
         }
-
-
 
         float fovDegrees = (float) (fovRadians * 180.0f / Math.PI);
         Logger.d("updateRendering: fovDegrees="+fovDegrees+", getVideoWidth="+vuforiaAppSession.getVideoWidth()+", getVideoHeight="+vuforiaAppSession.getVideoHeight());
@@ -232,17 +241,11 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         // 开始绘制到模型上
         int frameBufferId = mBackgroundRenderTarget.getFrameBufferHandle();
         int frameBufferTextureId = mBackgroundRenderTarget.getTexture().getTextureId();
-        //当一个FBO绑定以后，所有的OpenGL操作将会作用在这个绑定的帧缓冲区对象上。
-//        GLES20.glEnable(GLES20.GL_CULL_FACE);
-//        GLES20.glCullFace(GLES20.GL_BACK);
-//        GLES20.glFrontFace(GLES20.GL_CW);   // Back camera
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferId);
-        //把一幅空的纹理图像关联到一个FBO 一个FBO在同一个时间内可以绑定多个颜色缓冲区，每个对应FBO的一个绑定点
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
                 GLES20.GL_TEXTURE_2D, frameBufferTextureId, 0);
         mRenderer.drawVideoBackground();
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-
 
         float[] modelviewArray;
         // did we find any trackables this frame?
@@ -265,7 +268,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             //Matrix44F invTranspMV = SampleMath.Matrix44FTranspose(inverseMV);
 
             transformPositionAndOrientation(invTranspMV);
-
+            onFoundMarker();
 //            try {
 //                //先移除所有模型，以免模型重复叠加
 ////                world.removeAllObjects();
@@ -291,25 +294,26 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 //            }
 
 //            modelviewArray = invTranspMV.getData();
-            updateModelViewMatrix(invTranspMV);
+//            updateModelViewMatrix(invTranspMV);
         }
 
-        // 没有检测到图片目标则隐藏3D模型
+//        // 没有检测到图片目标则隐藏3D模型
         if (state.getNumTrackableResults() == 0) {
-            modelviewArray = new float[]{
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 0, -10000, 1 // z = -10000
-            };
-            updateModelViewMatrix(modelviewArray);
+//            modelviewArray = new float[]{
+//                    1, 0, 0, 0,
+//                    0, 1, 0, 0,
+//                    0, 0, 1, 0,
+//                    0, 0, -10000, 1 // z = -10000
+//            };
+//            updateModelViewMatrix(modelviewArray);
+            onNoFoundMarker();
         }
         mRenderer.end();
     }
 
-    private void updateModelViewMatrix(float mat[]) {
-        modelViewMat = mat;
-    }
+//    private void updateModelViewMatrix(float mat[]) {
+//        modelViewMat = mat;
+//    }
 
     private void copyFloatToDoubleMatrix(float[] src, double[] dst)
     {
@@ -328,11 +332,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     }
 
 
-    private void updatePositionAndOrientation() {
-        mBob.setVisible(true);
-        mBob.setPosition(mPosition);
-        mBob.setOrientation(mOrientation);
-    }
+
 
     //---------------------------------------------
     private Vector3 mPosition;
@@ -341,9 +341,10 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     private DirectionalLight          mLight;
     private SkeletalAnimationObject3D mBob;
 
-    private Object3D mCurrentObj;
+    private Object3D mSphere;
 
-    private RenderTarget mBackgroundRenderTarget; // 绘制相机背景
+    // 绘制相机背景
+    private RenderTarget mBackgroundRenderTarget;
     private ScreenQuad mBackgroundQuad;
 
     @Override
@@ -363,7 +364,7 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
             meshParser.parse();
             mBob = (SkeletalAnimationObject3D) meshParser
                     .getParsedAnimationObject();
-            mBob.setScale(2);
+            mBob.setScale(3);
 
             LoaderMD5Anim animParser = new LoaderMD5Anim("dance", this,
                     R.raw.boblampclean_anim);
@@ -373,10 +374,19 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
 
             getCurrentScene().addChild(mBob);
 
-            mBob.play();
+            //mBob.play();
             mBob.setVisible(false);
 
-            mCurrentObj = mBob;
+            //------------
+            Material material = new Material();
+            material.addTexture(new Texture("earthColors",
+                    R.drawable.earthtruecolor_nasa_big));
+            material.setColorInfluence(0);
+            mSphere = new Sphere(10, 50, 50);
+            mSphere.setScale(10);
+            mSphere.setMaterial(material);
+            getCurrentScene().addChild(mSphere);
+
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -388,7 +398,9 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
     @Override
     public void onRenderSurfaceCreated(EGLConfig config, GL10 gl, int width, int height) {
         super.onRenderSurfaceCreated(config, gl, width, height);
+
         initRendering(); // NOTE: Cocokin sama cpp - DONE
+
 
         // Call Vuforia function to (re)initialize rendering after first use
         // or after OpenGL ES context was lost (e.g. after onPause/onResume):
@@ -418,11 +430,43 @@ public class ImageTargetRendererObj extends org.rajawali3d.renderer.Renderer {
         //更新相机
         updatePositionAndOrientation();
         //模型旋转缩放操作
-        if (mCurrentObj != null) {
-            switchModel(mCurrentObj);
+        if (mBob != null) {
+            switchModel(mBob);
+        }
+        if (mSphere != null) {
+            mSphere.rotate(Vector3.Axis.Y, 1.0);
         }
     }
 
+    private void updatePositionAndOrientation() {
+        //mBob.setVisible(true);
+        mBob.setPosition(mPosition);
+        //mBob.setOrientation(mOrientation);
+
+        mSphere.setPosition(mPosition);
+        mSphere.setOrientation(mOrientation);
+    }
+
+
+    private void onFoundMarker(){
+        if (mBob != null) {
+            mBob.play();
+            mBob.setVisible(true);
+        }
+        if (mSphere != null) {
+            mSphere.setVisible(true);
+        }
+    }
+
+    private void onNoFoundMarker(){
+        if (mBob != null) {
+            mBob.pause();
+            mBob.setVisible(false);
+        }
+        if (mSphere != null) {
+            mSphere.setVisible(false);
+        }
+    }
 
 
     @Override
