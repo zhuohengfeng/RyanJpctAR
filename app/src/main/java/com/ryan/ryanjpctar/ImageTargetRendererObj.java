@@ -347,7 +347,6 @@ public class ImageTargetRendererObj extends VRRenderer {
 
     //---------------------------------------------
     private DirectionalLight          mLight;
-//    private SkeletalAnimationObject3D mBob;
 
     private Object3D mSphere;
 
@@ -438,23 +437,6 @@ public class ImageTargetRendererObj extends VRRenderer {
             mItemTrack.setPosition(0, -5, -40);
             getCurrentScene().addChild(mItemTrack);
 
-            /*
-            LoaderMD5Mesh meshParser = new LoaderMD5Mesh(this,
-                    R.raw.boblampclean_mesh);
-            meshParser.parse();
-            mBob = (SkeletalAnimationObject3D) meshParser
-                    .getParsedAnimationObject();
-            mBob.setScale(3);
-            LoaderMD5Anim animParser = new LoaderMD5Anim("dance", this,
-                    R.raw.boblampclean_anim);
-            animParser.parse();
-            mBob.setAnimationSequence((SkeletalAnimationSequence) animParser
-                    .getParsedAnimationSequence());
-            getCurrentScene().addChild(mBob);
-            //mBob.play();
-            mBob.setVisible(false);
-            */
-
             //------------
             Material material = new Material();
             material.addTexture(new Texture("earthColors",
@@ -511,16 +493,35 @@ public class ImageTargetRendererObj extends VRRenderer {
 //        if (mBob != null) {
 //            switchModel(mBob);
 //        }
-        if (mSphere != null && mSphere.isVisible()) {
-            mSphere.rotate(Vector3.Axis.Y, 1.0);
-            if (isCollision(mSphere)) {
-                Logger.d("isCollision 检测到了 mSphere");
-                mSphere.setScale(12f);
-            }
-            else {
-                mSphere.setScale(10f);
-            }
+
+
+        if (isLookingAtObject(mSphere)) {
+            Logger.d("lookingat 看到地球");
         }
+
+        if (isLookingAtObject(mItemBack)) {
+            Logger.d("lookingat 看到返回");
+        }
+
+        if (isLookingAtObject(mItemPlay)) {
+            Logger.d("lookingat 看到播放");
+        }
+
+        if (isLookingAtObject(mItemTrack)) {
+            Logger.d("lookingat 看到返回");
+        }
+
+
+//        if (mSphere != null && mSphere.isVisible()) {
+//            mSphere.rotate(Vector3.Axis.Y, 1.0);
+//            if (isCollision(mSphere)) {
+//                Logger.d("isCollision 检测到了 mSphere");
+//                mSphere.setScale(12f);
+//            }
+//            else {
+//                mSphere.setScale(10f);
+//            }
+//        }
 
         /*
         if (mItemPlay.isVisible()) {
@@ -581,13 +582,9 @@ public class ImageTargetRendererObj extends VRRenderer {
     }
 
     private void updatePositionAndOrientation() {
-        //mBob.setVisible(true);
-        //mBob.setPosition(mPosition);
-        //mBob.setOrientation(mOrientation);
-
-        mItemTrack.setPosition(mPosition.x, mPosition.y + 10, mPosition.z);
-        mItemPlay.setPosition(mPosition.x, mPosition.y, mPosition.z);
-        mItemBack.setPosition(mPosition.x, mPosition.y - 10, mPosition.z);
+//        mItemTrack.setPosition(mPosition.x, mPosition.y + 10, mPosition.z);
+//        mItemPlay.setPosition(mPosition.x, mPosition.y, mPosition.z);
+//        mItemBack.setPosition(mPosition.x, mPosition.y - 10, mPosition.z);
 
         mSphere.setPosition(mPosition);
         //mSphere.setOrientation(mOrientation);
@@ -595,18 +592,10 @@ public class ImageTargetRendererObj extends VRRenderer {
 
 
     private void onFoundMarker(){
-//        if (mBob != null) {
-//            mBob.play();
-//            mBob.setVisible(true);
-//        }
         showMenu();
     }
 
     private void onNoFoundMarker(){
-//        if (mBob != null) {
-//            mBob.pause();
-//            mBob.setVisible(false);
-//        }
         hideMenu();
     }
 
